@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="#">
+<link rel="stylesheet" href="./static/css/test.css"
+	th:href="@{/css/test.css}">
+<script type="text/javascript" src="./static/js/test.js"
+	th:src="@{/js/test.js}"></script>
+<script type="text/javascript">
+			//test();
+		</script>
+<title>Products List</title>
+</head>
+<body>
+	<h3 align="center" th:text="${msg}">Hello Products</h3>
+	<hr color="red">
+	<table border="1" style="margin: auto">
+		<tr>
+			<th>ID</th>
+			<th>产品名称</th>
+			<th>单价</th>
+			<th>操作</th>
+		</tr>
+		<tr th:each="product : ${products}">
+			<td th:text="${product.id}">1</td>
+			<td th:text="${product.name}">杯子</td>
+			<td th:text="${#numbers.formatDecimal(product.price, 1, 2)}">2.5</td>
+			<td colspan="2">
+				<a href="#">修改</a>
+				<a href="#">删除</a>
+			</td>
+		</tr>
+	</table>
+	<div th:switch="${role}">
+		<p th:case="'admin'">User is an Administrator</p>
+		<p th:case="'employee'">User is a Employee</p>
+	</div>
+</body>
+</html>
