@@ -57,9 +57,9 @@ public class RedisConfig extends CachingConfigurerSupport{
         RedisCacheConfiguration defaultCacheConfig=
         		RedisCacheConfiguration.
         		defaultCacheConfig().
+        		entryTtl(Duration.ofSeconds(30)).   //-- 链式设置缓存过期时间
         		serializeValuesWith(pair);
-        //设置默认超过期时间是30秒
-        defaultCacheConfig.entryTtl(Duration.ofSeconds(30));
+        
         //初始化RedisCacheManager
         return new RedisCacheManager(redisCacheWriter, defaultCacheConfig);
 	}
