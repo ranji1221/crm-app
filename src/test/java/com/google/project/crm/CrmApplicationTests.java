@@ -34,7 +34,7 @@ public class CrmApplicationTests {
 	@Test
 	public void insertProduct(){
 		for(int i=1;i<=10;i++){
-			prodDao.save(new Product("IPad"+i,i*100));
+			prodDao.save(new Product("Phone"+i,i*100));
 		}
 	}
 	

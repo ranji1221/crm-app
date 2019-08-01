@@ -1,11 +1,10 @@
 package com.google.project.crm.config;
 
-
+import java.lang.reflect.Method;
 import java.time.Duration;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,45 +15,52 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
-
-
+/**
+ * 配置Redis缓存机制的Key和Value的生产策略
+ * 如果不需要改变，可以不需要写此配置类
+ * @author RanJi
+ *
+ */
 @Configuration
-@EnableCaching
 public class RedisConfig extends CachingConfigurerSupport{
 	
-	 //自定义缓存key生成策略
-	 @Bean
-	 public KeyGenerator keyGenerator() {
-	      return new KeyGenerator(){
-	         @Override
-	          public Object generate(Object target, java.lang.reflect.Method method, Object... params) {
-	              StringBuffer sb = new StringBuffer();
-	              sb.append(target.getClass().getName());
-	              sb.append(method.getName());
-	              for(Object obj:params){
-	                  sb.append(obj.toString());
-	              }
-	              return sb.toString();
-	          }
-	      };
-	 }
+	@Bean
+	public KeyGenerator keyGenerator(){
+		return new KeyGenerator(){
+			@Override
+			public Object generate(Object target, Method method, Object... params) {
+				StringBuffer sb = new StringBuffer();
+	            sb.append(target.getClass().getSimpleName()+".");
+	            sb.append(method.getName());
+	            sb.append("[");
+	            for(Object obj:params){
+	               sb.append(obj.toString());
+	            }
+	            sb.append("]");
+	            return sb.toString();
+			}};
+	}
 	
-	/**
-	 * 缓存管理器
-	 */
-    @Bean
+	@Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        //初始化一个RedisCacheWriter
-        RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory);
-        //设置CacheManager的值序列化方式为json序列化
-        RedisSerializer<Object> jsonSerializer = new GenericJackson2JsonRedisSerializer();
-        RedisSerializationContext.SerializationPair<Object> pair = RedisSerializationContext.SerializationPair
-                                                    .fromSerializer(jsonSerializer);
-        RedisCacheConfiguration defaultCacheConfig=RedisCacheConfiguration.defaultCacheConfig()
-                                                    .serializeValuesWith(pair);
+		//-- 1. 初始化RedisCacheWriter对象
+        RedisCacheWriter redisCacheWriter = 
+        		RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory);
+        //-- 设置CacheManager的值序列化方式为json序列化
+        RedisSerializer<Object> jsonSerializer = 
+        		new GenericJackson2JsonRedisSerializer();
+        RedisSerializationContext.SerializationPair<Object> pair = 
+        		RedisSerializationContext.
+        		SerializationPair.
+        		fromSerializer(jsonSerializer);
+        //-- 2. 初始化配置对象
+        RedisCacheConfiguration defaultCacheConfig=
+        		RedisCacheConfiguration.
+        		defaultCacheConfig().
+        		serializeValuesWith(pair);
         //设置默认超过期时间是30秒
         defaultCacheConfig.entryTtl(Duration.ofSeconds(30));
         //初始化RedisCacheManager
         return new RedisCacheManager(redisCacheWriter, defaultCacheConfig);
-    }
+	}
 }
